@@ -1,0 +1,19 @@
+# The main pipeline for DataHub_Project_Bundle
+
+resources:
+  pipelines:
+    bronze_to_silver_earthquake_etl:
+      name: bronze_to_silver
+      configuration:
+        catalog_name: ${var.catalog}
+      libraries:
+        - glob:
+            include: ../src/DLT_pipelines/bronze_to_silver/transformations/**
+      schema: silver
+      continuous: false
+      development: false
+      photon: true
+      channel: CURRENT
+      catalog: ${var.catalog}
+      serverless: true
+      root_path: ../src/DLT_pipelines/bronze_to_silver
