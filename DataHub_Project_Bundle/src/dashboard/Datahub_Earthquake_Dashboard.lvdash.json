@@ -1,0 +1,340 @@
+{
+  "datasets": [
+    {
+      "name": "70858539",
+      "displayName": "Earthquake_Detail",
+      "queryLines": [
+        "select * from silver.earthquake_data_tbl"
+      ],
+      "catalog": "datahub",
+      "schema": "default"
+    },
+    {
+      "name": "e2e03630",
+      "displayName": "Magnitude_Categorization",
+      "queryLines": [
+        "\r\n",
+        "select count(*) as total_magnitude_bucket, magnitude_category from\r\n",
+        "(select case \r\n",
+        "  when cast(mag as decimal) < 2 then 'MICRO (<2)'\r\n",
+        "  when cast(mag as decimal) between 2 and 3 then 'Minor (2-3)'\r\n",
+        "  when cast(mag as decimal) between 3 and 4 then 'Light (3-4)'\r\n",
+        "  else 'Moderate (4+)'\r\n",
+        "end as magnitude_category\r\n",
+        "from silver.earthquake_data_tbl\r\n",
+        ") group by magnitude_category"
+      ],
+      "catalog": "datahub",
+      "schema": "default"
+    },
+    {
+      "name": "5d08c757",
+      "displayName": "Country Wise Earthquake Count",
+      "queryLines": [
+        "select count(*) as event_count,\r\n",
+        "  CASE \r\n",
+        "    when size(split(place, \", \")) = 1 then split(place, \", \")[0]\r\n",
+        "    else split(place, \", \")[1]\r\n",
+        "  end as country \r\n",
+        "from \r\n",
+        "  (select time, title, mag, longitude, place, latitute from datahub.silver.earthquake_data_tbl)\r\n",
+        "group by country"
+      ],
+      "catalog": "datahub",
+      "schema": "default"
+    }
+  ],
+  "pages": [
+    {
+      "name": "bb051d60",
+      "displayName": "Earthquake",
+      "layout": [
+        {
+          "widget": {
+            "name": "earthquake-details",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "70858539",
+                  "fields": [
+                    {
+                      "name": "time",
+                      "expression": "`time`"
+                    },
+                    {
+                      "name": "url",
+                      "expression": "`url`"
+                    },
+                    {
+                      "name": "tsunami",
+                      "expression": "`tsunami`"
+                    },
+                    {
+                      "name": "magType",
+                      "expression": "`magType`"
+                    },
+                    {
+                      "name": "mag",
+                      "expression": "`mag`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Earthquake Details",
+                "showDescription": false
+              },
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "time"
+                  },
+                  {
+                    "fieldName": "url"
+                  },
+                  {
+                    "fieldName": "tsunami"
+                  },
+                  {
+                    "fieldName": "magType"
+                  },
+                  {
+                    "fieldName": "mag"
+                  },
+                  {
+                    "fieldName": "status"
+                  }
+                ]
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "dark": "#DD0F12"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "1d171eed",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size: 72px;line-height: 1.5;\">Earthquake Dashboard</span>"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "places-where-earthquakes-occurred",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "70858539",
+                  "fields": [
+                    {
+                      "name": "latitute",
+                      "expression": "`latitute`"
+                    },
+                    {
+                      "name": "longitude",
+                      "expression": "`longitude`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Places where earthquake occured"
+              },
+              "widgetType": "symbol-map",
+              "encodings": {
+                "coordinates": {
+                  "latitude": {
+                    "fieldName": "latitute"
+                  },
+                  "longitude": {
+                    "fieldName": "longitude"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "magnitude-categorization",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e2e03630",
+                  "fields": [
+                    {
+                      "name": "total_magnitude_bucket",
+                      "expression": "`total_magnitude_bucket`"
+                    },
+                    {
+                      "name": "magnitude_category",
+                      "expression": "`magnitude_category`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Magnitude Categorization"
+              },
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "total_magnitude_bucket",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "magnitude_category",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "places-earthquake-occurred",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5d08c757",
+                  "fields": [
+                    {
+                      "name": "event_count",
+                      "expression": "`event_count`"
+                    },
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Places where Earthquake occured"
+              },
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "event_count",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 8,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "f66411ff",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "e31a275f",
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {},
+              "frame": {
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
